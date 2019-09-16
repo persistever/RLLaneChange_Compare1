@@ -38,7 +38,7 @@ def run_task(env, no_gui, max_episode, net=None, traffic=None):
             observation_ = np.array(observation_)
             print("action_high: " + str(action_high) + " action_low: " + str(action_low))
             if done is not True:
-                net.store_transition(observation, action_high, action_low, reward, observation_)
+                net.store_transition(observation, action_low, reward, observation_)
                 if step > 50 and step % 2 == 0:
                     net.learn()
             print("reward: " + str(reward))
@@ -59,18 +59,18 @@ if __name__ == "__main__":
     LC_env = Env(ego_start_time=100)
 
     # start learn
-    # dqn = DQN(n_features=7, e_greedy_start=0.6, e_greedy_increment=0.01, is_save=True, is_restore=False)
-    # run_task(env=LC_env, no_gui=True, max_episode=200, net=dqn, traffic=None)
+    dqn = DQN(n_features=7, e_greedy_start=0.6, e_greedy_increment=0.01, is_save=True, is_restore=False)
+    run_task(env=LC_env, no_gui=True, max_episode=50, net=dqn, traffic=None)
 
     # # continue learn
     # dqn = DQN(n_features=7, e_greedy_start=0.8, e_greedy_increment=0.01, is_save=True, is_restore=True)
     # run_task(env=LC_env, no_gui=True, max_episode=200, net=dqn, traffic=None)
 
     # # show learn result
-    dqn = DQN(n_features=7, e_greedy=1, e_greedy_start=1, e_greedy_increment=0.01, is_save=True, is_restore=True)
-    dqn.plot_cost()
-    dqn.plot_cost(length=300)
-    run_task(env=LC_env, no_gui=False, max_episode=4, net=dqn, traffic=None)
+    # dqn = DQN(n_features=7, e_greedy=1, e_greedy_start=1, e_greedy_increment=0.01, is_save=True, is_restore=True)
+    # dqn.plot_cost()
+    # dqn.plot_cost(length=300)
+    # run_task(env=LC_env, no_gui=False, max_episode=4, net=dqn, traffic=None)
 
 
 
