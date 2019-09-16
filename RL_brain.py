@@ -140,7 +140,7 @@ class DQN:
 
             # build fully connected layer
             n_fully_l1 = 50
-            with tf.variable_scope('high_l1'):
+            with tf.variable_scope('fully_l1'):
                 w_fully_l1 = tf.get_variable('w_fully_l1', [self.n_features+6*8*3, n_fully_l1], initializer=w_initializer, collections=c_names)
                 b_fully_l1 = tf.get_variable('b_fully_l1', [1, n_fully_l1], initializer=b_initializer, collections=c_names)
                 fully_l1 = tf.nn.relu(tf.matmul(fully_connected_input, w_fully_l1) + b_fully_l1)
@@ -182,7 +182,6 @@ class DQN:
                 b_l_conv_l2 = tf.get_variable('b_l_conv_l2', [1, n_conv_l2], initializer=b_initializer,
                                                 collections=c_names)
                 l_conv_l2_ = tf.nn.relu(self.conv1d(l_conv_l1_, w_l_conv_l2, 1) + b_l_conv_l2)
-                print(l_conv_l2)
             l_conv_output_ = tf.reshape(l_conv_l2_, [-1, 6 * 8])
 
             # build high mid cnn
@@ -223,12 +222,12 @@ class DQN:
             with tf.variable_scope('fully_l1'):
                 w_fully_l1 = tf.get_variable('w_fully_l1', [self.n_features + 6 * 8 * 3, n_fully_l1],
                                             initializer=w_initializer, collections=c_names)
-                b_fully_l1 = tf.get_variable('b_high_l1', [1, n_fully_l1], initializer=b_initializer, collections=c_names)
+                b_fully_l1 = tf.get_variable('b_fully_l1', [1, n_fully_l1], initializer=b_initializer, collections=c_names)
                 fully_l1 = tf.nn.relu(tf.matmul(fully_connected_input_, w_fully_l1) + b_fully_l1)
             with tf.variable_scope('fully_l2'):
                 w_fully_l2 = tf.get_variable('w_fully_l2', [n_fully_l1, self.n_actions], initializer=w_initializer,
                                             collections=c_names)
-                b_fully_l2 = tf.get_variable('b_high_l2', [1, self.n_actions], initializer=b_initializer,
+                b_fully_l2 = tf.get_variable('b_fully_l2', [1, self.n_actions], initializer=b_initializer,
                                             collections=c_names)
                 self.q_next = tf.matmul(fully_l1, w_fully_l2) + b_fully_l2
 
@@ -310,8 +309,13 @@ class DQN:
         q_target = q_eval.copy()
         eval_act_index = batch_memory[:, self.n_state].astype(int)
         reward = batch_memory[:, self.n_state + 1]
+        q_next = np.array(q_next)
+        print('q_next: \n'+str(q_next))
+        print('q_next.shape: \n' + str(q_next.shape))
         for batch_index in range(self.batch_size):
-            next_action = np.argmax(q_next[batch_index, :])
+            print('q_next[batch_index, :]'+str(q_next[batch_index, :]))
+            next_action = np.argmax(q_next[batch_index, :], axis=0)
+            print(next_action)
             if next_action < 5:
                 q_next = np.max(q_next[batch_index, :self.n_actions_l])
             elif next_action == 5:
@@ -319,6 +323,7 @@ class DQN:
             else:
                 q_next = np.max(q_next[batch_index, -self.n_actions_r:])
             q_target[batch_index, eval_act_index[batch_index]] = reward[batch_index] + self.gamma * q_next
+            batch_index += 1
         _, cost = self.sess.run([self._train_op, self.loss],
                                        feed_dict={self.s_left: batch_memory[:, :self.n_left].reshape(-1, 18, 1),  # newest params
                                                    self.s_mid: batch_memory[:, self.n_left:self.n_left+self.n_mid].reshape(-1, 18, 1),
